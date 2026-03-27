@@ -82,6 +82,18 @@
                 close proximity to the Metro.
             </p>
         </div>
+        <div class="control-group">
+            <label>Safety & Night Life</label>
+            <div class="safety-meter">
+                <div class="safety-bar-bg">
+                    <div id="safetyFill" class="safety-fill" style="width: 0%"></div>
+                </div>
+                <span id="safetyLabel">Analyzing...</span>
+            </div>
+            <button class="secondary-btn" onclick="toggleSafetyZone()">
+                <i data-lucide="shield-check" size="14"></i> Show Safety Radius
+            </button>
+        </div>
         <button class="book-btn">Schedule Visit</button>
     </aside>
 
@@ -91,46 +103,46 @@
     </div>
 
     <div class="floating-poi-control">
-    <div class="control-section">
-        <div class="poi-title">Neighborhood Essentials</div>
-        <div class="poi-grid">
-            <label class="poi-item">
-                <input type="checkbox" onchange="togglePOI('hospital', this)">
-                <div class="poi-content">
-                    <i data-lucide="hospital" size="14"></i>
-                    <span>Hospitals</span>
-                </div>
-            </label>
-            <label class="poi-item">
-                <input type="checkbox" onchange="togglePOI('subway', this)">
-                <div class="poi-content">
-                    <i data-lucide="train" size="14"></i>
-                    <span>Metro</span>
-                </div>
-            </label>
-            <label class="poi-item">
-                <input type="checkbox" onchange="togglePOI('shopping_cart', this)">
-                <div class="poi-content">
-                    <i data-lucide="shopping-cart" size="14"></i>
-                    <span>Markets</span>
-                </div>
-            </label>
+        <div class="control-section">
+            <div class="poi-title">Neighborhood Essentials</div>
+            <div class="poi-grid">
+                <label class="poi-item">
+                    <input type="checkbox" onchange="togglePOI('hospital', this)">
+                    <div class="poi-content">
+                        <i data-lucide="hospital" size="14"></i>
+                        <span>Hospitals</span>
+                    </div>
+                </label>
+                <label class="poi-item">
+                    <input type="checkbox" onchange="togglePOI('subway', this)">
+                    <div class="poi-content">
+                        <i data-lucide="train" size="14"></i>
+                        <span>Metro</span>
+                    </div>
+                </label>
+                <label class="poi-item">
+                    <input type="checkbox" onchange="togglePOI('shopping_cart', this)">
+                    <div class="poi-content">
+                        <i data-lucide="shopping-cart" size="14"></i>
+                        <span>Markets</span>
+                    </div>
+                </label>
+            </div>
         </div>
-    </div>
 
-    <div class="divider"></div>
+        <div class="divider"></div>
 
-    <div class="control-section">
-        <div class="poi-title">Sunlight Exposure</div>
-        <div class="sun-container">
-            <div class="sun-row">
-                <i data-lucide="sun" size="16" class="sun-icon"></i>
-                <input type="range" id="sunSlider" min="6" max="18" value="12" oninput="updateSunlight()">
-                <span id="sunTimeText">12:00 PM</span>
+        <div class="control-section">
+            <div class="poi-title">Sunlight Exposure</div>
+            <div class="sun-container">
+                <div class="sun-row">
+                    <i data-lucide="sun" size="16" class="sun-icon"></i>
+                    <input type="range" id="sunSlider" min="6" max="18" value="12" oninput="updateSunlight()">
+                    <span id="sunTimeText">12:00 PM</span>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <div class="poi-title">Essentials</div>
     <div class="poi-grid">
@@ -147,7 +159,7 @@
             <span><i data-lucide="shopping-cart" size="14"></i> Markets</span>
         </label>
     </div>
-</div>
+    </div>
 
 </body>
 

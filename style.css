@@ -68,6 +68,26 @@ html {
     pointer-events: none;
 }
 
+.floating-poi-control {
+    position: fixed;
+    top: 20px; /* Default top position */
+    right: 20px;
+    z-index: 1100;
+    width: 220px;
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#detailsSidebar:not(.hidden) ~ .floating-poi-control {
+    right: 360px; /* Sidebar width (320px) + 40px gap */
+    top: 20px;
+}
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -186,6 +206,33 @@ input[type="range"] {
 .prop-card:hover {
     border-color: var(--accent);
     transform: translateY(-2px);
+}
+
+.value-badge {
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+.value-deal { background: #10b981; color: white; } /* Green */
+.value-fair { background: #6366f1; color: white; } /* Blue */
+.value-poor { background: #f59e0b; color: white; } /* Orange */
+
+.trade-off-text {
+    font-size: 0.75rem;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--glass-border);
+    opacity: 0.8;
+    line-height: 1.4;
+}
+
+.trade-off-text b {
+    color: var(--accent);
 }
 
 .price {
@@ -317,21 +364,6 @@ input[type="range"] {
     gap: 6px;
 }
 
-.floating-poi-control {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1100;
-    width: 220px; /* Slightly wider for better spacing */
-    background: var(--glass);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 16px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-    color: var(--text-main);
-}
-
 .control-section {
     display: flex;
     flex-direction: column;
@@ -419,4 +451,54 @@ input[type="range"] {
     color: #fbbf24;
     min-width: 60px;
     text-align: right;
+}
+
+.safety-meter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.safety-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: var(--input-bg);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.safety-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f87171, #fbbf24, #10b981);
+    transition: width 1s ease-in-out;
+}
+
+#safetyLabel { font-size: 0.75rem; font-weight: 700; color: var(--text-main); }
+
+.secondary-btn {
+    width: 100%;
+    padding: 8px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid #10b981;
+    color: #10b981;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* Map Safety Pulse Animation */
+.safety-pulse {
+    stroke-dasharray: 5, 10;
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { stroke-dashoffset: 100; }
+    to { stroke-dashoffset: 0; }
 }
