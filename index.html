@@ -6,298 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChronoHome Nagpur | GIS Pro</title>
 
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
 
-    <style>
-        :root {
-            --glass: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.5);
-            --accent: #6366f1;
-            --text-main: #1e293b;
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --input-bg: rgba(255, 255, 255, 0.6);
-        }
-
-        [data-theme="dark"] {
-            --glass: rgba(15, 23, 42, 0.9);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f1f5f9;
-            --card-bg: rgba(30, 41, 59, 0.9);
-            --input-bg: rgba(0, 0, 0, 0.3);
-        }
-
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Segoe UI', sans-serif;
-            overflow: hidden;
-            background: #000;
-        }
-
-        #map {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 100%;
-            z-index: 1;
-        }
-
-        /* Sidebar Base */
-        .sidebar {
-            position: absolute;
-            top: 20px;
-            bottom: 20px;
-            background: var(--glass);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            padding: 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            color: var(--text-main);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-        }
-
-        .sidebar-left {
-            left: 20px;
-            width: 340px;
-        }
-
-        .sidebar-right {
-            right: 20px;
-            width: 320px;
-            transform: translateX(0);
-        }
-
-        .sidebar-right.hidden {
-            transform: translateX(400px);
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            font-size: 1.4rem;
-            margin: 0;
-            font-weight: 800;
-        }
-
-        .header h1 span {
-            color: var(--accent);
-        }
-
-        /* Search Box Logic */
-        .search-box {
-            position: relative;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-        }
-
-        #addressSearch {
-            width: 100%;
-            padding: 12px 40px 12px 15px;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            background: var(--input-bg);
-            color: var(--text-main);
-            outline: none;
-            font-size: 0.9rem;
-        }
-
-        .clear-btn {
-            position: absolute;
-            right: 12px;
-            cursor: pointer;
-            color: var(--text-main);
-            opacity: 0.6;
-            display: none;
-        }
-
-        .suggestions-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            margin-top: 5px;
-            z-index: 2000;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .suggestion-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .suggestion-item:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        /* Controls & Cards */
-        .control-group {
-            margin-bottom: 20px;
-        }
-
-        .control-group label {
-            display: block;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            opacity: 0.8;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            accent-color: var(--accent);
-            cursor: pointer;
-        }
-
-        .badge {
-            background: var(--accent);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.75rem;
-        }
-
-        .results-scroll {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .prop-card {
-            background: var(--card-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 14px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .prop-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .price {
-            color: var(--accent);
-            font-weight: 800;
-        }
-
-        /* Detail Sidebar Items */
-        .hero-img {
-            height: 120px;
-            background: var(--accent);
-            border-radius: 16px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .info-box p {
-            margin: 4px 0;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .book-btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: auto;
-        }
-
-        .mode-toggle {
-            display: flex;
-            background: var(--input-bg);
-            border-radius: 12px;
-            padding: 4px;
-            gap: 4px;
-            border: 1px solid var(--glass-border);
-        }
-
-        .mode-btn {
-            flex: 1;
-            border: none;
-            background: none;
-            padding: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            color: var(--text-main);
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: center;
-            opacity: 0.6;
-        }
-
-        .mode-btn.active {
-            background: var(--accent);
-            color: white;
-            opacity: 1;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        }
-
-        .mode-btn:hover:not(.active) {
-            background: rgba(99, 102, 241, 0.1);
-            opacity: 1;
-        }
-
-        .toggle-btn {
-            cursor: pointer;
-            border: none;
-            background: none;
-            color: var(--text-main);
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 10px;
-        }
-    </style>
 </head>
 
 <body data-theme="dark">
@@ -342,6 +53,7 @@
             </div>
         </div>
 
+
         <div id="resultsList" class="results-scroll"></div>
     </aside>
 
@@ -373,238 +85,70 @@
         <button class="book-btn">Schedule Visit</button>
     </aside>
 
-    <script>
-        // 1. DATA: 20 Nagpur Properties
-        const props = [
-            { id: 1, name: "Civil Lines Heights", price: "₹25,000", lat: 21.152, lng: 79.070 },
-            { id: 2, name: "Dharampeth Residency", price: "₹18,500", lat: 21.140, lng: 79.065 },
-            { id: 3, name: "Ramdaspeth Premium", price: "₹32,000", lat: 21.135, lng: 79.075 },
-            { id: 4, name: "Sitabuldi Square Lofts", price: "₹15,000", lat: 21.145, lng: 79.085 },
-            { id: 5, name: "Manish Nagar Studio", price: "₹12,000", lat: 21.095, lng: 79.090 },
-            { id: 6, name: "Pratap Nagar Apts", price: "₹22,500", lat: 21.120, lng: 79.055 },
-            { id: 7, name: "MIHAN Tech Park Stay", price: "₹20,000", lat: 21.060, lng: 79.050 },
-            { id: 8, name: "Trimurti Nagar Flat", price: "₹16,000", lat: 21.115, lng: 79.045 },
-            { id: 9, name: "Khamla Square Greens", price: "₹19,000", lat: 21.110, lng: 79.060 },
-            { id: 10, name: "Jaripatka Heritage", price: "₹14,500", lat: 21.185, lng: 79.095 },
-            { id: 11, name: "Besa Road Gardens", price: "₹11,000", lat: 21.080, lng: 79.105 },
-            { id: 12, name: "Friends Colony West", price: "₹17,000", lat: 21.165, lng: 79.040 },
-            { id: 13, name: "Wardhaman Nagar East", price: "₹21,000", lat: 21.155, lng: 79.130 },
-            { id: 14, name: "Ayodhya Nagar Hub", price: "₹13,500", lat: 21.125, lng: 79.115 },
-            { id: 15, name: "Koradi Road View", price: "₹15,500", lat: 21.210, lng: 79.085 },
-            { id: 16, name: "Sonegaon Skybox", price: "₹28,000", lat: 21.100, lng: 79.045 },
-            { id: 17, name: "Wadi Industrial Lofts", price: "₹10,500", lat: 21.150, lng: 79.005 },
-            { id: 18, name: "Medical Square Plaza", price: "₹16,500", lat: 21.130, lng: 79.095 },
-            { id: 19, name: "Pardi East Point", price: "₹9,500", lat: 21.160, lng: 79.155 },
-            { id: 20, name: "Beltarodi New City", price: "₹18,000", lat: 21.070, lng: 79.095 }
-        ];
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="script.js"></script>
+    </div>
 
-        // 2. Initialize Map
-        const map = L.map('map', { zoomControl: false }).setView([21.1458, 79.0882], 13);
-        const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: 'CartoDB' });
-        const lightTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: 'OSM' });
-        darkTiles.addTo(map);
+    <div class="floating-poi-control">
+    <div class="control-section">
+        <div class="poi-title">Neighborhood Essentials</div>
+        <div class="poi-grid">
+            <label class="poi-item">
+                <input type="checkbox" onchange="togglePOI('hospital', this)">
+                <div class="poi-content">
+                    <i data-lucide="hospital" size="14"></i>
+                    <span>Hospitals</span>
+                </div>
+            </label>
+            <label class="poi-item">
+                <input type="checkbox" onchange="togglePOI('subway', this)">
+                <div class="poi-content">
+                    <i data-lucide="train" size="14"></i>
+                    <span>Metro</span>
+                </div>
+            </label>
+            <label class="poi-item">
+                <input type="checkbox" onchange="togglePOI('shopping_cart', this)">
+                <div class="poi-content">
+                    <i data-lucide="shopping-cart" size="14"></i>
+                    <span>Markets</span>
+                </div>
+            </label>
+        </div>
+    </div>
 
-        const workplaceIcon = L.divIcon({
-            className: 'workplace-marker',
-            html: "<div style='background:#6366f1; width:14px; height:14px; border-radius:50%; border:3px solid white; box-shadow:0 0 10px #6366f1;'></div>",
-            iconSize: [20, 20], iconAnchor: [10, 10]
-        });
+    <div class="divider"></div>
 
-        const workplace = L.marker([21.1458, 79.0882], { icon: workplaceIcon, draggable: true }).addTo(map);
-        const reachCircle = L.circle([21.1458, 79.0882], { color: '#6366f1', fillColor: '#6366f1', fillOpacity: 0.1, weight: 1.5, dashArray: '5, 5' }).addTo(map);
-        const markersLayer = L.layerGroup().addTo(map);
+    <div class="control-section">
+        <div class="poi-title">Sunlight Exposure</div>
+        <div class="sun-container">
+            <div class="sun-row">
+                <i data-lucide="sun" size="16" class="sun-icon"></i>
+                <input type="range" id="sunSlider" min="6" max="18" value="12" oninput="updateSunlight()">
+                <span id="sunTimeText">12:00 PM</span>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // 3. Theme Toggle
-        function toggleTheme() {
-            const body = document.body;
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            body.setAttribute('data-theme', newTheme);
+    <div class="poi-title">Essentials</div>
+    <div class="poi-grid">
+        <label class="poi-item">
+            <input type="checkbox" onchange="togglePOI('hospital', this)">
+            <span><i data-lucide="hospital" size="14"></i> Hospitals</span>
+        </label>
+        <label class="poi-item">
+            <input type="checkbox" onchange="togglePOI('subway', this)">
+            <span><i data-lucide="train" size="14"></i> Metro</span>
+        </label>
+        <label class="poi-item">
+            <input type="checkbox" onchange="togglePOI('shopping_cart', this)">
+            <span><i data-lucide="shopping-cart" size="14"></i> Markets</span>
+        </label>
+    </div>
+</div>
 
-            if (newTheme === 'light') {
-                map.removeLayer(darkTiles); lightTiles.addTo(map);
-                document.getElementById('themeIconBtn').innerHTML = '<i data-lucide="moon"></i>';
-            } else {
-                map.removeLayer(lightTiles); darkTiles.addTo(map);
-                document.getElementById('themeIconBtn').innerHTML = '<i data-lucide="sun"></i>';
-            }
-            lucide.createIcons();
-        }
-
-        // 4. Search & Autocomplete
-        const searchInput = document.getElementById('addressSearch');
-        const clearBtn = document.getElementById('clearSearch');
-        const suggestionsBox = document.getElementById('suggestions');
-        let debounceTimer;
-
-        searchInput.addEventListener('input', function () {
-            const query = this.value;
-            clearBtn.style.display = query.length > 0 ? 'block' : 'none';
-            if (query.length < 3) { suggestionsBox.classList.add('hidden'); return; }
-
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}+Nagpur&limit=5`)
-                    .then(res => res.json()).then(data => renderSuggestions(data));
-            }, 300);
-        });
-
-        function renderSuggestions(data) {
-            suggestionsBox.innerHTML = '';
-            if (data.length === 0) { suggestionsBox.classList.add('hidden'); return; }
-            data.forEach(place => {
-                const div = document.createElement('div');
-                div.className = 'suggestion-item';
-                const name = place.display_name.split(',')[0];
-                div.innerText = name;
-                div.onclick = () => {
-                    const latlng = [place.lat, place.lon];
-                    workplace.setLatLng(latlng);
-                    map.flyTo(latlng, 14);
-                    searchInput.value = name;
-                    suggestionsBox.classList.add('hidden');
-                    updateUI();
-                };
-                suggestionsBox.appendChild(div);
-            });
-            suggestionsBox.classList.remove('hidden');
-        }
-
-        clearBtn.onclick = () => {
-            searchInput.value = ''; clearBtn.style.display = 'none';
-            const home = [21.1458, 79.0882];
-            workplace.setLatLng(home); map.flyTo(home, 13);
-            updateUI();
-        };
-
-        // 5. Details Sidebar Functions
-        function showDetails(id, time) {
-            const p = props.find(x => x.id === id);
-            document.getElementById('detName').innerText = p.name;
-            document.getElementById('detPrice').innerText = p.price;
-            document.getElementById('detTime').innerText = `${time} mins`;
-            document.getElementById('detailsSidebar').classList.remove('hidden');
-            map.flyTo([p.lat, p.lng], 15);
-        }
-
-        function closeDetails() {
-            document.getElementById('detailsSidebar').classList.add('hidden');
-        }
-
-        // 6. GIS Update Engine
-        function updateUI() {
-            const mins = document.getElementById('commuteSlider').value;
-            document.getElementById('timeVal').innerText = `${mins} mins`;
-            const radius = mins * 220;
-
-            reachCircle.setRadius(radius);
-            reachCircle.setLatLng(workplace.getLatLng());
-            markersLayer.clearLayers();
-
-            const list = document.getElementById('resultsList');
-            list.innerHTML = '';
-            let count = 0;
-
-            props.forEach(p => {
-                const dist = workplace.getLatLng().distanceTo([p.lat, p.lng]);
-                if (dist <= radius) {
-                    count++;
-                    const travelTime = Math.round(dist / 220);
-
-                    // Add Map Marker
-                    L.circleMarker([p.lat, p.lng], { radius: 7, color: '#6366f1', fillColor: '#fff', fillOpacity: 1, weight: 2 })
-                        .addTo(markersLayer).on('click', () => showDetails(p.id, travelTime));
-
-                    // Add List Card
-                    const card = document.createElement('div');
-                    card.className = 'prop-card';
-                    card.onclick = () => showDetails(p.id, travelTime);
-                    card.innerHTML = `<h4>${p.name}</h4><div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="price">${p.price}</span><small>🕒 ${travelTime} min</small></div>`;
-                    list.appendChild(card);
-                }
-            });
-            document.getElementById('count').innerText = count;
-        }
-
-        // Global State for Transport
-        let currentSpeed = 400; // Default: Driving (meters/min)
-        let currentModeColor = '#6366f1';
-
-        function setMode(mode, speed, color) {
-            currentSpeed = speed;
-            currentModeColor = color;
-
-            // Update UI Button States
-            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(btn-`${mode}`).classList.add('active');
-
-            // Update Circle Visuals
-            reachCircle.setStyle({
-                color: color,
-                fillColor: color
-            });
-
-            // Update the Map Logic
-            updateUI();
-        }
-
-        // MODIFIED updateUI Logic
-        function updateUI() {
-            const mins = document.getElementById('commuteSlider').value;
-            document.getElementById('timeVal').innerText = `${mins} mins`;
-
-            // THE FORMULA: Distance = Speed * Time
-            const radius = mins * currentSpeed;
-
-            reachCircle.setRadius(radius);
-            reachCircle.setLatLng(workplace.getLatLng());
-            markersLayer.clearLayers();
-
-            const list = document.getElementById('resultsList');
-            list.innerHTML = '';
-            let count = 0;
-
-            props.forEach(p => {
-                const dist = workplace.getLatLng().distanceTo([p.lat, p.lng]);
-                if (dist <= radius) {
-                    count++;
-                    const travelTime = Math.round(dist / currentSpeed);
-
-                    // Marker matches the mode color
-                    L.circleMarker([p.lat, p.lng], {
-                        radius: 7,
-                        color: currentModeColor,
-                        fillColor: '#fff',
-                        fillOpacity: 1,
-                        weight: 2
-                    }).addTo(markersLayer).on('click', () => showDetails(p.id, travelTime));
-
-                    const card = document.createElement('div');
-                    card.className = 'prop-card';
-                    card.onclick = () => showDetails(p.id, travelTime);
-                    card.innerHTML = `<h4>${p.name}</h4>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="price" style="color:${currentModeColor}">${p.price}</span>
-                    <small>🕒 ${travelTime} min</small>
-                </div>`;
-                    list.appendChild(card);
-                }
-            });
-            document.getElementById('count').innerText = count;
-        }
-
-        // Listeners
-        document.getElementById('commuteSlider').addEventListener('input', updateUI);
-        workplace.on('drag', updateUI);
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-box')) suggestionsBox.classList.add('hidden');
-        });
-
-        // Final Init
-        lucide.createIcons();
-        updateUI();
-    </script>
 </body>
 
 </html>
