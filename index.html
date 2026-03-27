@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronoHome | GIS Hackathon</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --accent: #6366f1;
+            --text-main: #1e293b;
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        [data-theme="dark"] {
+            --glass: rgba(15, 23, 42, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f1f5f9;
+            --card-bg: rgba(30, 41, 59, 0.9);
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Map background */
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+            z-index: 1;
+            background: #0b0e14;
+        }
+
+        /* Floating Glass Sidebar */
+        .sidebar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            bottom: 20px;
+            width: 360px;
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            color: var(--text-main);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .header h1 span {
+            color: var(--accent);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .badge {
+            background: var(--accent);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        /* Property Cards */
+        .results-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .prop-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 12px;
+            animation: fadeIn 0.4s ease;
+            transition: transform 0.2s;
+        }
+
+        .prop-card:hover {
+            transform: scale(1.02);
+            border-color: var(--accent);
+        }
+
+        .prop-card h4 {
+            margin: 0 0 5px 0;
+            font-size: 1rem;
+        }
+
+        .prop-card .price {
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        /* Dark Mode Toggle */
+        .toggle-btn {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--text-main);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body data-theme="dark">
+
+    <div id="map"></div>
+
+    <aside class="sidebar">
+        <div class="header">
+            <h1>Chrono<span>Home</span></h1>
+            <button class="toggle-btn" onclick="toggleTheme()"><i data-lucide="moon"></i></button>
+        </div>
+
+        <div class="control-group">
+            <label>Commute Limit</label>
+            <input type="range" id="commuteSlider" min="5" max="60" value="25">
+            <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                <span id="timeVal" class="badge">25 mins</span>
+                <span style="font-size: 0.8rem;">Found: <b id="count">0</b></span>
+            </div>
+        </div>
+
+        <div class="results-scroll" id="resultsList">
+        </div>
+    </aside>
+
+    <script>
+        // 1. Nagpur Mock Data (Coordinates near Civil Lines / Dharampeth)
+        const props = [
+            { id: 1, name: "Civil Lines Heights", price: "₹25,000", lat: 21.152, lng: 79.070 },
+            { id: 2, name: "Dharampeth Residency", price: "₹18,500", lat: 21.140, lng: 79.065 },
+            { id: 3, name: "Ramdaspeth Premium", price: "₹32,000", lat: 21.135, lng: 79.075 },
+            { id: 4, name: "Sitabuldi Square Lofts", price: "₹15,000", lat: 21.145, lng: 79.085 },
+            { id: 5, name: "Manish Nagar Studio", price: "₹12,000", lat: 21.095, lng: 79.090 },
+            { id: 6, name: "Pratap Nagar Apts", price: "₹22,500", lat: 21.120, lng: 79.055 },
+            { id: 7, name: "MIHAN Tech Park Stay", price: "₹20,000", lat: 21.060, lng: 79.050 },
+            { id: 8, name: "Trimurti Nagar Flat", price: "₹16,000", lat: 21.115, lng: 79.045 }
+        ];
+
+        // 2. Initialize Map - Centered on Nagpur [21.1458, 79.0882]
+        const map = L.map('map', { zoomControl: false }).setView([21.1458, 79.0882], 13);
+
+        const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        // 3. Workplace Marker (Centered on Nagpur City Center)
+        const workplaceIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: "<div style='background-color:#6366f1; width:15px; height:15px; border-radius:50%; border:3px solid white; box-shadow: 0 0 15px #6366f1;'></div>",
+            iconSize: [21, 21], iconAnchor: [10, 10]
+        });
+
+        const workplace = L.marker([21.1458, 79.0882], { icon: workplaceIcon, draggable: true }).addTo(map);
+        workplace.bindTooltip("Drag to your Office in Nagpur", { permanent: true, direction: 'right' }).openTooltip();
+
+        // 4. Reach Circle
+        const reachCircle = L.circle([21.1458, 79.0882], {
+            color: '#6366f1', fillColor: '#6366f1', fillOpacity: 0.15, weight: 2, dashArray: '5, 10'
+        }).addTo(map);
+
+        const markersLayer = L.layerGroup().addTo(map);
+
+        // 5. Core Logic
+        function updateUI() {
+            const mins = document.getElementById('commuteSlider').value;
+            document.getElementById('timeVal').innerText = `${mins} mins`;
+
+            // Adjusted speed for Nagpur traffic (200m per min)
+            const radius = mins * 200;
+            reachCircle.setRadius(radius);
+            reachCircle.setLatLng(workplace.getLatLng());
+
+            markersLayer.clearLayers();
+            const list = document.getElementById('resultsList');
+            list.innerHTML = '';
+            let count = 0;
+
+            props.forEach(p => {
+                const dist = workplace.getLatLng().distanceTo([p.lat, p.lng]);
+                if (dist <= radius) {
+                    count++;
+                    const travelTime = Math.round(dist / 200);
+
+                    L.circleMarker([p.lat, p.lng], {
+                        radius: 6, color: '#6366f1', fillColor: '#fff', fillOpacity: 1, weight: 2
+                    }).addTo(markersLayer).bindPopup(`<b>${p.name}</b><br>${p.price}`);
+
+                    const card = document.createElement('div');
+                    card.className = 'prop-card';
+                    card.innerHTML = `
+                <h4>${p.name}</h4>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="price" style="color:#6366f1; font-weight:800;">${p.price}</span>
+                    <small>🕒 ${travelTime} min commute</small>
+                </div>
+            `;
+                    list.appendChild(card);
+                }
+            });
+            document.getElementById('count').innerText = count;
+        }
+
+        // 6. Listeners
+        document.getElementById('commuteSlider').addEventListener('input', updateUI);
+        workplace.on('drag', updateUI);
+
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+
+            // Update map tiles based on theme
+            if (isDark) {
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            } else {
+                darkTiles.addTo(map);
+            }
+        }
+
+        // 7. Add Search Bar Control
+        const geocoder = L.Control.geocoder({
+            defaultMarkGeocode: false,
+            placeholder: "Search Nagpur area...",
+            position: "topright" // Keeps it separate from your glass sidebar
+        })
+            .on('markgeocode', function (e) {
+                const latlng = e.geocode.center;
+
+                // Move the workplace marker to the searched location
+                workplace.setLatLng(latlng);
+
+                // Center the map on the new location
+                map.flyTo(latlng, 14);
+
+                // Trigger the commute filter update
+                updateUI();
+            })
+            .addTo(map);
+
+        // Initialize
+        lucide.createIcons();
+        updateUI();
+
+    </script>
+</body>
+
+</html>
